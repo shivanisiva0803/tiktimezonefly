@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TickTimeZoneFly.com - Time Zone Converter</title>
+    <style>
+        /* CSS Variables - Slate/Blue Palette */
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --ad-bg: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Layout Architecture */
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            gap: 2rem;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+        }
+
+        /* Dynamic Title & Controls */
+        .title-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        #dynamic-title {
+            font-size: 2rem;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        #reset-time-btn {
+            display: none;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        
+        #reset-time-btn:hover { background-color: var(--primary-dark); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .tabs::-webkit-scrollbar { display: none; }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .tab:hover { color: var(--primary); }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Tab Contents */
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-pane.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Search & Toggle Engine Layout */
+        .action-bar {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-container {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus { border-color: var(--primary); }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background-color: #f1f5f9; }
+        .dropdown-item strong { color: var(--primary); display: block; }
+        .dropdown-item span { font-size: 0.875rem; color: var(--text-muted); }
+
+        /* 12h/24h Toggle Switch */
+        .format-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-toggle {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider-toggle:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider-toggle { background-color: var(--primary); }
+        input:checked + .slider-toggle:before { transform: translateX(20px); }
+
+        /* Time Zone Cards */
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-left h3 { font-size: 1.5rem; color: var(--primary-dark); margin-bottom: 0.25rem; }
+        .card-left p { font-size: 0.875rem; color: var(--text-muted); }
+
+        .card-right { text-align: right; }
+        .card-right .time-display {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+        }
+        .card-right .date-display { font-size: 0.9rem; color: var(--text-muted); }
+
+        .btn-close {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: none; border: none;
+            font-size: 1.5rem; color: var(--border-color);
+            cursor: pointer; transition: color 0.2s;
+        }
+        .btn-close:hover { color: var(--danger); }
+
+        /* Interactive Scrubber Meter */
+        .scrubber-container { padding: 0 0.5rem; }
+
+        .slider-time {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #cbd5e1;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        .slider-time::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .slider-time::-webkit-slider-thumb:active { transform: scale(1.2); }
+        .slider-time::-moz-range-thumb {
+            width: 20px; height: 20px;
+            border-radius: 50%; background: var(--primary); cursor: pointer;
+        }
+
+        .scale-labels {
+            display: flex; justify-content: space-between;
+            font-size: 0.75rem; color: var(--text-muted); user-select: none;
+        }
+
+        /* Details & Meta-Data Dashboards */
+        .details-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .dashboard-card h3 {
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.5rem;
+        }
+
+        .data-text { color: var(--text-main); font-size: 0.95rem; margin-bottom: 0.5rem; }
+        .data-value { font-weight: 600; color: var(--primary); }
+        
+        .wiki-content {
+            font-size: 0.9rem; color: var(--text-main);
+            max-height: 200px; overflow-y: auto; padding-right: 10px;
+        }
+        
+        .wiki-loader { font-style: italic; color: var(--text-muted); }
+
+        .full-width { grid-column: 1 / -1; }
+
+        /* SEO & Info Section */
+        .seo-section {
+            background: white; padding: 2rem;
+            border-radius: 12px; border: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+        .seo-section h3 { margin-bottom: 1rem; color: var(--primary-dark); }
+        .seo-section p { margin-bottom: 1rem; }
+        .seo-section ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .seo-section li { margin-bottom: 0.5rem; }
+
+        /* Ads */
+        .ad-container {
+            background: var(--ad-bg); display: flex; align-items: center;
+            justify-content: center; color: var(--text-muted);
+            font-weight: bold; letter-spacing: 1px; border: 1px dashed #94a3b8;
+        }
+        .ad-leaderboard { width: 100%; height: 90px; margin: 2rem auto; max-width: 728px; }
+        .ad-skyscraper { width: 300px; height: 600px; position: sticky; top: 2rem; }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .container { flex-direction: column; }
+            .sidebar, .ad-skyscraper { width: 100%; height: 250px; position: static; }
+        }
+
+        @media (max-width: 768px) {
+            .details-dashboard { grid-template-columns: 1fr; }
+            .action-bar { flex-direction: column; align-items: stretch; }
+            .format-toggle-container { justify-content: space-between; }
+        }
+
+        @media (max-width: 600px) {
+            .title-area, .card-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .card-right { text-align: left; }
+            .btn-close { top: 1.5rem; }
+            .scale-labels span:nth-child(even) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>TickTimeZoneFly.com</h1>
+    </header>
+
+    <div class="container">
+        <main class="main-content">
+            
+            <div class="title-area">
+                <h2 id="dynamic-title">Time Zone Converter</h2>
+                <button id="reset-time-btn">Reset to Live Time</button>
+            </div>
+            
+            <nav class="tabs" id="tab-nav"></nav>
+            
+            <div id="tab-content-container">
+                <div class="tab-pane active" id="pane-converter">
+                    
+                    <div class="action-bar">
+                        <div class="search-container">
+                            <input type="text" id="tz-search" class="search-input" placeholder="Search by timezone (EST), city (London), or country (Japan)..." autocomplete="off">
+                            <div id="search-dropdown" class="dropdown"></div>
+                        </div>
+                        <div class="format-toggle-container">
+                            <span>24-Hour Format</span>
+                            <label class="switch">
+                                <input type="checkbox" id="format-toggle">
+                                <span class="slider-toggle"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="cards-deck" class="cards-container"></div>
+
+                    <div class="ad-container ad-leaderboard">
+                        728x90 LEADERBOARD AD
+                    </div>
+
+                    <section class="seo-section">
+                        <h3>How to use the time zone converter</h3>
+                        <p>Add a time zone, city, or town, then add more places to compare local time side by side. Change the date or time to plan a meeting, call, webinar, livestream, or travel connection.</p>
+                        <ul>
+                            <li>Compare several time zones in one view.</li>
+                            <li>Share a permanent link for meetings, calls, webinars, or travel plans.</li>
+                            <li>Use the table view to scan day, night, and sunrise hours.</li>
+                            <li>Switch between 12-hour and 24-hour time formats.</li>
+                            <li>Review local time zone details, maps, and major cities when available.</li>
+                        </ul>
+                    </section>
+                </div>
+
+                <div class="tab-pane" id="pane-diff">
+                    <div class="details-dashboard" id="diff-content"></div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="ad-container ad-skyscraper">
+                300x600 SKYSCRAPER AD
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // 1. Core Data: Expanded Database covering all Major Continents & Regions
+        const tzDatabase = [
+            // Baseline
+            { id: 'UTC', aliases: [], abbr: 'UTC', name: 'Coordinated Universal Time', country: 'Global Baseline', cities: 'London, Reykjavik', wiki: 'Coordinated_Universal_Time', companies: 'Global Forex Markets, International Banking Standard.' },
+            
+            // Americas (North & South)
+            { id: 'America/New_York', aliases: ['US/Eastern'], abbr: 'EST', name: 'Eastern Time', country: 'USA, Canada', cities: 'New York, Washington D.C., Toronto', wiki: 'Eastern_Time_Zone', companies: 'Apple (AAPL), Microsoft (MSFT), JPMorgan Chase (JPM).' },
+            { id: 'America/Chicago', aliases: ['US/Central'], abbr: 'CST', name: 'Central Time', country: 'USA, Mexico', cities: 'Chicago, Houston, Mexico City', wiki: 'Central_Time_Zone_(Americas)', companies: 'Boeing (BA), McDonald\'s (MCD), Caterpillar (CAT).' },
+            { id: 'America/Los_Angeles', aliases: ['US/Pacific'], abbr: 'PST', name: 'Pacific Time', country: 'USA, Canada', cities: 'Los Angeles, San Francisco, Vancouver', wiki: 'Pacific_Time_Zone', companies: 'Alphabet (GOOGL), Meta (META), Nvidia (NVDA).' },
+            { id: 'America/Halifax', aliases: ['Canada/Atlantic'], abbr: 'AST', name: 'Atlantic Standard Time', country: 'Canada, Caribbean', cities: 'Halifax, San Juan', wiki: 'Atlantic_Time_Zone', companies: 'Royal Bank of Canada, Scotiabank Regional Hubs.' },
+            { id: 'America/Anchorage', aliases: ['US/Alaska'], abbr: 'AKST', name: 'Alaska Standard Time', country: 'USA (Alaska)', cities: 'Anchorage, Juneau', wiki: 'Alaska_Time_Zone', companies: 'ConocoPhillips Alaska, Alaska Airlines.' },
+            { id: 'America/Sao_Paulo', aliases: ['Brazil/East'], abbr: 'BRT', name: 'Brasília Time', country: 'Brazil', cities: 'São Paulo, Rio de Janeiro', wiki: 'Time_in_Brazil', companies: 'Petrobras, Vale, Itaú Unibanco.' },
+            { id: 'America/Argentina/Buenos_Aires', aliases: ['America/Buenos_Aires'], abbr: 'ART', name: 'Argentina Time', country: 'Argentina', cities: 'Buenos Aires, Córdoba', wiki: 'Time_in_Argentina', companies: 'MercadoLibre, YPF, Tenaris.' },
+            
+            // Europe
+            { id: 'Europe/London', aliases: ['Europe/Belfast', 'GB'], abbr: 'GMT', name: 'Greenwich Mean Time', country: 'UK, Ireland', cities: 'London, Dublin', wiki: 'Greenwich_Mean_Time', companies: 'HSBC (HSBA.L), AstraZeneca (AZN.L), Unilever (ULVR.L).' },
+            { id: 'Europe/Paris', aliases: ['Europe/Berlin', 'Europe/Rome', 'Europe/Madrid'], abbr: 'CET', name: 'Central European Time', country: 'Western/Central Europe', cities: 'Paris, Berlin, Rome, Madrid', wiki: 'Central_European_Time', companies: 'LVMH (MC.PA), SAP (SAP.DE), ASML (ASML.AS).' },
+            { id: 'Europe/Athens', aliases: ['Europe/Helsinki', 'Europe/Bucharest'], abbr: 'EET', name: 'Eastern European Time', country: 'Eastern Europe', cities: 'Athens, Helsinki, Bucharest', wiki: 'Eastern_European_Time', companies: 'Nokia, OTE Group, Petrom.' },
+            { id: 'Europe/Moscow', aliases: ['W-SU'], abbr: 'MSK', name: 'Moscow Standard Time', country: 'Russia', cities: 'Moscow, St. Petersburg', wiki: 'Moscow_Time', companies: 'Gazprom, Sberbank, Lukoil.' },
+            
+            // Africa
+            { id: 'Africa/Cairo', aliases: ['Egypt'], abbr: 'EGY', name: 'Egypt Standard Time', country: 'Egypt', cities: 'Cairo, Alexandria', wiki: 'Egypt_Standard_Time', companies: 'Commercial International Bank, Orascom.' },
+            { id: 'Africa/Johannesburg', aliases: ['Africa/Maputo'], abbr: 'SAST', name: 'South African Standard Time', country: 'South Africa', cities: 'Johannesburg, Cape Town', wiki: 'South_African_Standard_Time', companies: 'Naspers, FirstRand, Standard Bank.' },
+            { id: 'Africa/Lagos', aliases: ['Africa/Kinshasa'], abbr: 'WAT', name: 'West Africa Time', country: 'Nigeria, DRC', cities: 'Lagos, Kinshasa', wiki: 'West_Africa_Time', companies: 'Dangote Group, MTN Nigeria, Zenith Bank.' },
+            { id: 'Africa/Nairobi', aliases: ['Africa/Addis_Ababa'], abbr: 'EAT', name: 'East Africa Time', country: 'Kenya, Ethiopia', cities: 'Nairobi, Addis Ababa', wiki: 'East_Africa_Time', companies: 'Safaricom, Equity Group Holdings.' },
+
+            // Asia & Middle East
+            { id: 'Asia/Kolkata', aliases: ['Asia/Calcutta'], abbr: 'IST', name: 'Indian Standard Time', country: 'India', cities: 'Mumbai, New Delhi, Bengaluru', wiki: 'Indian_Standard_Time', companies: 'Reliance Industries (RELIANCE), Tata Consultancy Services (TCS), HDFC Bank.' },
+            { id: 'Asia/Tokyo', aliases: ['Japan'], abbr: 'JST', name: 'Japan Standard Time', country: 'Japan', cities: 'Tokyo, Osaka, Kyoto', wiki: 'Japan_Standard_Time', companies: 'Toyota Motor (7203.T), Sony (6758.T), Keyence (6861.T).' },
+            { id: 'Asia/Shanghai', aliases: ['PRC', 'Asia/Beijing'], abbr: 'CST', name: 'China Standard Time', country: 'China', cities: 'Beijing, Shanghai, Shenzhen', wiki: 'Time_in_China', companies: 'Tencent, Alibaba, ICBC.' },
+            { id: 'Asia/Singapore', aliases: ['Asia/Kuala_Lumpur'], abbr: 'SGT', name: 'Singapore Standard Time', country: 'Singapore, Malaysia', cities: 'Singapore, Kuala Lumpur', wiki: 'Singapore_Standard_Time', companies: 'DBS Bank, Singtel, Sea Limited.' },
+            { id: 'Asia/Dubai', aliases: ['Asia/Muscat'], abbr: 'GST', name: 'Gulf Standard Time', country: 'UAE, Oman', cities: 'Dubai, Abu Dhabi, Muscat', wiki: 'United_Arab_Emirates_Standard_Time', companies: 'Emirates NBD, Emaar Properties, DP World.' },
+            { id: 'Asia/Seoul', aliases: ['ROK'], abbr: 'KST', name: 'Korea Standard Time', country: 'South Korea', cities: 'Seoul, Busan', wiki: 'Time_in_South_Korea', companies: 'Samsung Electronics, Hyundai Motor, SK Hynix.' },
+            { id: 'Asia/Riyadh', aliases: ['Asia/Aden'], abbr: 'AST', name: 'Arabia Standard Time', country: 'Saudi Arabia', cities: 'Riyadh, Jeddah', wiki: 'Arabia_Standard_Time', companies: 'Saudi Aramco, SABIC, Al Rajhi Bank.' },
+            
+            // Oceania
+            { id: 'Australia/Sydney', aliases: ['Australia/NSW'], abbr: 'AEST', name: 'Australian Eastern Time', country: 'Australia', cities: 'Sydney, Melbourne, Brisbane', wiki: 'Time_in_Australia', companies: 'BHP Group (BHP.AX), Commonwealth Bank (CBA.AX), CSL (CSL.AX).' },
+            { id: 'Pacific/Auckland', aliases: ['NZ'], abbr: 'NZST', name: 'New Zealand Standard Time', country: 'New Zealand', cities: 'Auckland, Wellington', wiki: 'Time_in_New_Zealand', companies: 'Fisher & Paykel Healthcare, Spark New Zealand, Auckland International Airport.' }
+        ];
+
+        // 2. Application State
+        const AppState = {
+            activeZones: [],
+            baseDate: new Date(),
+            activeTabId: 'converter',
+            isManualMode: false,
+            use24Hour: false
+        };
+
+        let liveClockInterval;
+
+        // 3. UI Elements Mapping
+        const UI = {
+            title: document.getElementById('dynamic-title'),
+            resetBtn: document.getElementById('reset-time-btn'),
+            tabNav: document.getElementById('tab-nav'),
+            tabContainer: document.getElementById('tab-content-container'),
+            searchInput: document.getElementById('tz-search'),
+            dropdown: document.getElementById('search-dropdown'),
+            formatToggle: document.getElementById('format-toggle'),
+            cardsDeck: document.getElementById('cards-deck'),
+            diffContent: document.getElementById('diff-content')
+        };
+
+        // 4. Initialization
+        function initApp() {
+            const userTzId = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            let userTzObj = tzDatabase.find(tz => tz.id === userTzId || tz.aliases.includes(userTzId));
+            if(!userTzObj) userTzObj = tzDatabase.find(tz => tz.id === 'UTC');
+            
+            addZone(userTzObj);
+            setupEventListeners();
+            startLiveClock();
+        }
+
+        function startLiveClock() {
+            liveClockInterval = setInterval(() => {
+                if (!AppState.isManualMode) {
+                    AppState.baseDate = new Date();
+                    updateAllTimesAndSliders(null);
+                }
+            }, 1000);
+        }
+
+        function setupEventListeners() {
+            UI.searchInput.addEventListener('input', handleSearch);
+            
+            UI.resetBtn.addEventListener('click', () => {
+                AppState.isManualMode = false;
+                UI.resetBtn.style.display = 'none';
+                AppState.baseDate = new Date();
+                updateAllTimesAndSliders(null);
+            });
+            
+            UI.formatToggle.addEventListener('change', (e) => {
+                AppState.use24Hour = e.target.checked;
+                updateAllTimesAndSliders(null);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    UI.dropdown.style.display = 'none';
+                }
+            });
+        }
+
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase().trim();
+            if (query.length < 1) {
+                UI.dropdown.style.display = 'none';
+                return;
+            }
+            const results = tzDatabase.filter(tz => 
+                tz.abbr.toLowerCase().includes(query) ||
+                tz.name.toLowerCase().includes(query) ||
+                tz.country.toLowerCase().includes(query) ||
+                tz.cities.toLowerCase().includes(query)
+            );
+            renderDropdown(results);
+        }
+
+        function renderDropdown(results) {
+            UI.dropdown.innerHTML = '';
+            if (results.length === 0) {
+                UI.dropdown.innerHTML = '<div class="dropdown-item"><span>No matches found.</span></div>';
+            } else {
+                results.forEach(tz => {
+                    if (AppState.activeZones.some(active => active.id === tz.id)) return;
+                    const div = document.createElement('div');
+                    div.className = 'dropdown-item';
+                    div.innerHTML = `<strong>${tz.abbr} - ${tz.name}</strong><span>${tz.cities} (${tz.country})</span>`;
+                    div.addEventListener('click', () => {
+                        addZone(tz);
+                        UI.searchInput.value = '';
+                        UI.dropdown.style.display = 'none';
+                    });
+                    UI.dropdown.appendChild(div);
+                });
+            }
+            UI.dropdown.style.display = 'block';
+        }
+
+        function addZone(tzObj) {
+            AppState.activeZones.push(tzObj);
+            rebuildInterface();
+        }
+
+        function removeZone(tzId) {
+            AppState.activeZones = AppState.activeZones.filter(tz => tz.id !== tzId);
+            rebuildInterface();
+        }
+
+        function rebuildInterface() {
+            updateTitle();
+            buildTabs();
+            renderCards();
+            renderTimeDiff();
+        }
+
+        function updateTitle() {
+            const count = AppState.activeZones.length;
+            if (count <= 1) UI.title.textContent = "Time Zone Converter";
+            else if (count === 2) UI.title.textContent = `${AppState.activeZones[0].abbr} to ${AppState.activeZones[1].abbr} Converter`;
+            else UI.title.textContent = "Multi-Zone Converter";
+        }
+
+        function buildTabs() {
+            UI.tabNav.innerHTML = '';
+            
+            createTab('Converter', 'converter', AppState.activeTabId === 'converter' || !AppState.activeTabId);
+            
+            if (AppState.activeZones.length >= 2) {
+                createTab('Time Difference', 'diff', AppState.activeTabId === 'diff');
+            }
+
+            AppState.activeZones.forEach(tz => {
+                const isTabActive = AppState.activeTabId === `meta-${tz.id}`;
+                createTab(`${tz.abbr} Details`, `meta-${tz.id}`, isTabActive);
+                buildMetaTabContent(tz);
+            });
+
+            switchTab(AppState.activeTabId);
+        }
+
+        function createTab(label, id, isActive) {
+            const tab = document.createElement('div');
+            tab.className = `tab ${isActive ? 'active' : ''}`;
+            tab.textContent = label;
+            tab.onclick = () => switchTab(id);
+            tab.dataset.target = id;
+            UI.tabNav.appendChild(tab);
+        }
+
+        function buildMetaTabContent(tz) {
+            const oldPane = document.getElementById(`pane-meta-${tz.id}`);
+            if (oldPane) oldPane.remove();
+
+            const pane = document.createElement('div');
+            pane.className = `tab-pane ${AppState.activeTabId === `meta-${tz.id}` ? 'active' : ''}`;
+            pane.id = `pane-meta-${tz.id}`;
+            
+            const testDate = new Date();
+            const formatter = new Intl.DateTimeFormat('en-US', { timeZone: tz.id, timeZoneName: 'longOffset' });
+            const shortFormatter = new Intl.DateTimeFormat('en-US', { timeZone: tz.id, timeZoneName: 'short' });
+            
+            const tzFormatString = formatter.format(testDate);
+            const match = tzFormatString.match(/(?:GMT|UTC)([+-]\d{1,2}:\d{2})/);
+            let offsetStr = match ? match[1] : '+00:00';
+
+            const dstStatus = shortFormatter.format(testDate).includes('Daylight') || shortFormatter.format(testDate).includes('Summer') ? "Currently observing DST" : "Not observing DST / Standard Time";
+
+            pane.innerHTML = `
+                <div class="details-dashboard">
+                    
+                    <div class="dashboard-card">
+                        <h3>ℹ️ Time Zone Profile</h3>
+                        <p class="data-text">Name: <span class="data-value">${tz.name} (${tz.abbr})</span></p>
+                        <p class="data-text">Live UTC Offset: <span class="data-value">GMT/UTC ${offsetStr}</span></p>
+                        <p class="data-text">DST Status: <span class="data-value">${dstStatus}</span></p>
+                        <p class="data-text">Core Region: <span class="data-value">${tz.country}</span></p>
+                        <p class="data-text">Major Hubs: <span class="data-value">${tz.cities}</span></p>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3>📈 Economy & Top Companies</h3>
+                        <p class="data-text">Notable Market Drivers in this Zone:</p>
+                        <p class="data-text"><span class="data-value">${tz.companies}</span></p>
+                        <p class="data-text" style="margin-top: 10px; font-size: 0.85rem; color: #64748b;">*Sample composite representing dominant regional market caps.</p>
+                    </div>
+
+                    <div class="dashboard-card full-width">
+                        <h3>📚 Live Wikipedia Digest</h3>
+                        <div id="wiki-${tz.id}" class="wiki-content wiki-loader">Pulling latest Wikipedia encyclopedia data...</div>
+                    </div>
+
+                </div>
+            `;
+            UI.tabContainer.appendChild(pane);
+
+            // Fetch Live Wikipedia Digest (Native API Call, No Keys Required)
+            fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&titles=${encodeURIComponent(tz.wiki)}&format=json&origin=*`)
+                .then(res => res.json())
+                .then(data => {
+                    const el = document.getElementById(`wiki-${tz.id}`);
+                    if(el) {
+                        const pages = data.query.pages;
+                        const extract = Object.values(pages)[0].extract;
+                        if(extract) {
+                            el.innerHTML = extract;
+                            el.classList.remove('wiki-loader');
+                        } else {
+                            el.innerHTML = "Detailed encyclopedic entry not found.";
+                        }
+                    }
+                })
+                .catch(() => {
+                    const el = document.getElementById(`wiki-${tz.id}`);
+                    if(el) el.innerHTML = "Encyclopedia data temporarily unavailable.";
+                });
+        }
+
+        function switchTab(id) {
+            const targetPane = document.getElementById(`pane-${id}`);
+            if(!targetPane) id = 'converter'; 
+
+            AppState.activeTabId = id;
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const activeTabElement = document.querySelector(`.tab[data-target="${id}"]`);
+            if(activeTabElement) activeTabElement.classList.add('active');
+
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById(`pane-${id}`).classList.add('active');
+        }
+
+        function renderTimeDiff() {
+            if (AppState.activeZones.length < 2) return;
+            UI.diffContent.innerHTML = '';
+            
+            const baseTz = AppState.activeZones[0];
+            const baseDate = new Date();
+            
+            for (let i = 1; i < AppState.activeZones.length; i++) {
+                const compareTz = AppState.activeZones[i];
+                
+                const baseStr = baseDate.toLocaleString('en-US', { timeZone: baseTz.id });
+                const compStr = baseDate.toLocaleString('en-US', { timeZone: compareTz.id });
+                
+                let diffHours = (new Date(compStr) - new Date(baseStr)) / (1000 * 60 * 60);
+                const direction = diffHours >= 0 ? "ahead of" : "behind";
+                
+                const item = document.createElement('div');
+                item.className = 'dashboard-card full-width';
+                item.innerHTML = `
+                    <h3>${compareTz.abbr} vs ${baseTz.abbr}</h3>
+                    <p class="data-text" style="font-size: 1.1rem;"><strong>${compareTz.name}</strong> is currently <strong>${Math.abs(diffHours)} hour(s) ${direction}</strong> ${baseTz.name}.</p>
+                `;
+                UI.diffContent.appendChild(item);
+            }
+        }
+
+        function renderCards() {
+            UI.cardsDeck.innerHTML = '';
+            
+            AppState.activeZones.forEach((tz) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.tz = tz.id;
+                
+                card.innerHTML = `
+                    <button class="btn-close" aria-label="Remove zone">&times;</button>
+                    <div class="card-header">
+                        <div class="card-left">
+                            <h3>${tz.abbr}</h3>
+                            <p>${tz.name} &bull; ${tz.country}</p>
+                        </div>
+                        <div class="card-right">
+                            <div class="time-display" id="time-${tz.id.replace('/','-')}">--:--</div>
+                            <div class="date-display" id="date-${tz.id.replace('/','-')}">--</div>
+                        </div>
+                    </div>
+                    <div class="scrubber-container">
+                        <input type="range" class="slider-time" id="slider-${tz.id.replace('/','-')}" min="0" max="1439" value="0">
+                        <div class="scale-labels">
+                            <span>12am</span><span>3am</span><span>6am</span><span>9am</span>
+                            <span>12pm</span><span>3pm</span><span>6pm</span><span>9pm</span><span>11:59pm</span>
+                        </div>
+                    </div>
+                `;
+                
+                UI.cardsDeck.appendChild(card);
+                card.querySelector('.btn-close').addEventListener('click', () => removeZone(tz.id));
+
+                const slider = card.querySelector('.slider-time');
+                let startValue = 0;
+                
+                const setManualMode = (e) => {
+                    AppState.isManualMode = true;
+                    UI.resetBtn.style.display = 'block';
+                    startValue = parseInt(e.target.value);
+                };
+
+                slider.addEventListener('mousedown', setManualMode);
+                slider.addEventListener('touchstart', setManualMode);
+                
+                slider.addEventListener('input', (e) => {
+                    const deltaMinutes = parseInt(e.target.value) - startValue;
+                    AppState.baseDate = new Date(AppState.baseDate.getTime() + (deltaMinutes * 60000));
+                    updateAllTimesAndSliders(tz.id); 
+                    startValue = parseInt(e.target.value); 
+                });
+            });
+
+            updateAllTimesAndSliders(null);
+        }
+
+        function updateAllTimesAndSliders(draggingTzId) {
+            AppState.activeZones.forEach(tz => {
+                const safeId = tz.id.replace('/','-');
+                
+                const timeOpts = { 
+                    timeZone: tz.id, 
+                    hour: 'numeric', 
+                    minute: '2-digit', 
+                    second: '2-digit', 
+                    hour12: !AppState.use24Hour 
+                };
+                
+                const dateOpts = { timeZone: tz.id, weekday: 'short', month: 'short', day: 'numeric', timeZoneName: 'shortOffset' };
+                
+                const timeStr = AppState.baseDate.toLocaleTimeString('en-US', timeOpts);
+                const dateStr = AppState.baseDate.toLocaleDateString('en-US', dateOpts);
+                
+                const timeEl = document.getElementById(`time-${safeId}`);
+                const dateEl = document.getElementById(`date-${safeId}`);
+                
+                if(timeEl) timeEl.textContent = timeStr;
+                if(dateEl) dateEl.textContent = dateStr;
+
+                if (tz.id !== draggingTzId) {
+                    const hrMin = AppState.baseDate.toLocaleTimeString('en-US', { timeZone: tz.id, hour: 'numeric', minute: 'numeric', hour12: false });
+                    let [hr, min] = hrMin.split(':');
+                    if (parseInt(hr) === 24) hr = 0; 
+
+                    const totalMinutes = (parseInt(hr) * 60) + parseInt(min);
+                    const sliderEl = document.getElementById(`slider-${safeId}`);
+                    if(sliderEl) sliderEl.value = totalMinutes;
+                }
+            });
+        }
+
+        // Initialize application on load
+        window.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>
