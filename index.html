@@ -428,33 +428,33 @@ body.dark-mode .seo-section h3 {
   color: var(--text-main);
 }
 
-body.dark-mode .wiki-content {
-    background-color: #162033;
+/* 1. Target the upper cards container */
+body.dark-mode .info-card {
+    background-color: #162033 !important;
     border-radius: 8px;
-    padding: 12px;
+    padding: 16px;
     color: var(--text-main);
 }
 
-body.dark-mode .wiki-content * {
-    background: transparent !important;
-    color: var(--text-main) !important;
-}
-body.dark-mode .wiki-content a {
-    color: #38bdf8 !important;
-}
-
-body.dark-mode .wiki-content h1,
-body.dark-mode .wiki-content h2,
-body.dark-mode .wiki-content h3,
-body.dark-mode .wiki-content h4 {
+/* 2. Style the card titles (e.g., "Time Zone Profile", "Economy & Top Companies") */
+body.dark-mode .info-card h3,
+body.dark-mode .info-card .card-title {
     color: #e2e8f0 !important;
 }
 
-body.dark-mode .wiki-content table, 
-body.dark-mode .wiki-content div {
-    background: transparent !important;
+/* 3. Fix the faint labels (e.g., "Name:", "Live UTC Offset:") to be readable */
+body.dark-mode .info-card .label, 
+body.dark-mode .info-card grey-text-selector { 
+    color: #94a3b8 !important; /* Soft, readable gray for dark backgrounds */
 }
 
+/* 4. Make the blue values and links pop clearly against the dark background */
+body.dark-mode .info-card a,
+body.dark-mode .info-card .value,
+body.dark-mode .info-card strong {
+    color: #38bdf8 !important; /* Matching the sky blue from your wiki links */
+}
+        
 /* Smooth transition */
 body {
     transition: all 0.3s ease;
