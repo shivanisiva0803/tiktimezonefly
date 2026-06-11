@@ -429,8 +429,30 @@ body.dark-mode .seo-section h3 {
 }
 
 body.dark-mode .wiki-content {
-    background-color: var(--bg-card);
-    color: var(--text-main);
+    background-color: #162033;
+    border-radius: 8px;
+    padding: 12px;
+    /*color: var(--text-main);*/
+}
+
+body.dark-mode .wiki-content * {
+    background-: transparent !important;
+    color: var(--text-main) !important;
+}
+body.dark-mode .wiki-content a {
+    color: #38bdf8 !important;
+}
+
+body.dark-mode .wiki-content h1,
+body.dark-mode .wiki-content h2,
+body.dark-mode .wiki-content h3,
+body.dark-mode .wiki-content h4 {
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .wiki-content table, 
+body.dark-mode .wiki-content div {
+    background: transparent !important;
 }
 
 /* Smooth transition */
@@ -1339,10 +1361,10 @@ function loadFromURL() {
     </script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>  
 <footer style="text-align:center; padding:20px; margin-top:40px; font-size:14px;">
-    <h1><a href="./privacy-policy.html">Privacy Policy</a> | 
-    <h1><a href="./about.html">About us</a> | 
-    <h1><a href="./contact.html">Contact us</a> | 
-    </h1><a href="./disclaimer.html">Disclaimer</a> </h1>
+    <h3><a href="./privacy-policy.html">Privacy Policy</a> | 
+    <a href="./about.html">About us</a> | 
+    <a href="./contact.html">Contact us</a> | 
+    <a href="./disclaimer.html">Disclaimer</a> </h3>
 </footer>
 <div id="cookie-banner" style="position:fixed; bottom:0; width:100%; background:#111; color:white; padding:10px; text-align:center;">
     We use cookies to improve your experience.
