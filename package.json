@@ -1,0 +1,27 @@
+{
+  "name": "tiktimezonefly",
+  "version": "1.0.0",
+  "description": "TimeZoneFly - Time Zone Converter",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"No tests specified\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shivanisiva0803/tiktimezonefly.git"
+  },
+  "keywords": [
+    "timezone",
+    "converter",
+    "time"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shivanisiva0803/tiktimezonefly/issues"
+  },
+  "homepage": "https://github.com/shivanisiva0803/tiktimezonefly#readme",
+  "dependencies": {
+    "@vercel/speed-insights": "^2.0.0"
+  }
+}
