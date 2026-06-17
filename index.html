@@ -432,6 +432,35 @@ footer a:not(:last-child)::after {
             .scale-labels span:nth-child(even) { display: none; }
         }
 
+.time-display {
+    cursor: pointer;
+    border: 1px dashed var(--border-color);
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.time-display:hover {
+    border-color: var(--primary);
+    background: rgba(2,132,199,0.08);
+}
+
+/* ✏️ icon */
+.edit-icon {
+    font-size: 14px;
+    opacity: 0.6;
+    pointer-events: none; /* ✅ important so click works */
+}
+
+/* hover effect */
+.time-display:hover .edit-icon {
+    opacity: 1;
+}
+
 .blink {
     animation: blinkColon 1s step-start infinite;
 }
@@ -693,6 +722,18 @@ body {
     background: var(--bg-body);
 }
 
+.time-input-inline {
+    font-size: 1.8rem;
+    font-weight: 700;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 4px 8px;
+    width: 140px;
+    text-align: center;
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+
     </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -744,9 +785,7 @@ body {
 
                     <div id="cards-deck" class="cards-container"></div>
 
-                    <div class="ad-container ad-leaderboard">
-                        728x90 LEADERBOARD AD
-                    </div>
+                    
 
                     <section class="seo-section">
                         <h3>Time Zone Converter: User Guide</h3>
@@ -772,6 +811,14 @@ body {
                     <div class="details-dashboard" id="diff-content"></div>
                 </div>
             </div>
+            
+
+
+            
+            <div class="ad-container ad-leaderboard">
+                728x90 LEADERBOARD AD
+            </div>
+
         </main>
 
         <aside class="sidebar">
@@ -921,14 +968,21 @@ function initFlatpickr() {
 
 
 function startLiveClock() {
-            liveClockInterval = setInterval(() => {
-                if (!AppState.isManualMode) {
-                    if (fp) fp.setDate(AppState.baseDate, false);
-                    AppState.baseDate = new Date();
-                    updateAllTimesAndSliders(null);
-                }
-            }, 1000);
+    liveClockInterval = setInterval(() => {
+
+        if (!AppState.isManualMode) {
+
+            AppState.baseDate = new Date();
+
+            if (fp && document.activeElement !== fp.input) {
+                fp.setDate(AppState.baseDate, false);
+            }
+
+            updateAllTimesAndSliders(null);
         }
+
+    }, 1000);
+}
 
 function formatTimeWithBlink(date, tz) {
     const parts = new Intl.DateTimeFormat('en-US', {
@@ -1383,61 +1437,178 @@ function removeZone(tzId) {
             }
         }
 
-        function renderCards() {
-            UI.cardsDeck.innerHTML = '';
-            
-            AppState.activeZones.forEach((tz) => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.dataset.tz = tz._instance || tz.id;
-                
-                const safeId = (tz._instance || tz.id).toString().replace(/[^a-zA-Z0-9]/g, '');
-                card.innerHTML = `
-                    <button class="btn-close" aria-label="Remove zone">&times;</button>
-                    <div class="card-header">
-                        <div class="card-left">
-                            <h3>${flagEmoji(tz.countryCode)} ${tz.abbr}</h3>
-                            <p>${tz.customLabel ? tz.customLabel + ' • ' + tz.country : tz.name + ' • ' + tz.country}</p>
-                        </div>
-                        <div class="card-right">
-                            <div class="time-display" id="time-${safeId}">--:--</div>
-                            <div class="date-display" id="date-${safeId}">--</div>
-                        </div>
-                    </div>
-                    <div class="scrubber-container">
-                        <input type="range" class="slider-time" id="slider-${safeId}" min="0" max="1439" value="0">
-                        <div class="scale-labels">
-                            <span>12am</span><span>3am</span><span>6am</span><span>9am</span>
-                            <span>12pm</span><span>3pm</span><span>6pm</span><span>9pm</span><span>11:59pm</span>
-                        </div>
-                    </div>
-                `;
-                
-                UI.cardsDeck.appendChild(card);
-                card.querySelector('.btn-close').addEventListener('click', () => removeZone(tz._instance || tz.id));
+function renderCards() {
+    UI.cardsDeck.innerHTML = '';
 
-                const slider = card.querySelector('.slider-time');
-                let startValue = 0;
-                
-                const setManualMode = (e) => {
-                    AppState.isManualMode = true;
-                    UI.resetBtn.style.display = 'block';
-                    startValue = parseInt(e.target.value);
-                };
+    AppState.activeZones.forEach((tz) => {
 
-                slider.addEventListener('mousedown', setManualMode);
-                slider.addEventListener('touchstart', setManualMode);
-                
-                slider.addEventListener('input', (e) => {
-                    const deltaMinutes = parseInt(e.target.value) - startValue;
-                    AppState.baseDate = new Date(AppState.baseDate.getTime() + (deltaMinutes * 60000));
-                    updateAllTimesAndSliders(tz._instance || tz.id);
-                    startValue = parseInt(e.target.value); 
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.tz = tz._instance || tz.id;
+
+        const safeId = (tz._instance || tz.id)
+            .toString()
+            .replace(/[^a-zA-Z0-9]/g, '');
+
+        card.innerHTML = `
+            <button class="btn-close">&times;</button>
+
+            <div class="card-header">
+
+                <div class="card-left">
+                    <h3>${flagEmoji(tz.countryCode)} ${tz.abbr}</h3>
+                    <p>${tz.customLabel ? tz.customLabel + ' • ' + tz.country : tz.name + ' • ' + tz.country}</p>
+                </div>
+
+                <div class="card-right">
+                    <div class="time-display" id="time-${safeId}" title="Click to edit time">
+                        <span class="edit-icon">✏️</span>    
+                    </div>
+
+                    <input
+                        class="time-input-inline"
+                        id="input-${safeId}"
+                        type="text"
+                        style="display:none"
+                        
+                    />
+
+                    <div class="date-display" id="date-${safeId}">--</div>
+                </div>
+
+            </div>
+
+            <div class="scrubber-container">
+                <input type="range" class="slider-time" id="slider-${safeId}" min="0" max="1439" value="0">
+                <div class="scale-labels">
+                    <span>12am</span><span>3am</span><span>6am</span><span>9am</span>
+                    <span>12pm</span><span>3pm</span><span>6pm</span><span>9pm</span><span>11:59pm</span>
+                </div>
+            </div>
+        `;
+
+        UI.cardsDeck.appendChild(card);
+
+        // ✅ remove zone
+        card.querySelector('.btn-close')
+            .addEventListener('click', () => removeZone(tz._instance || tz.id));
+
+        const inputEl = card.querySelector(`#input-${safeId}`);
+        const timeEl = card.querySelector(`#time-${safeId}`);
+
+        // ✅ CLICK → EDIT MODE
+        timeEl.addEventListener('click', () => {
+            inputEl.style.display = 'block';
+            timeEl.style.display = 'none';
+            inputEl.focus();
+        });
+
+        // ✅ SLIDER
+        const slider = card.querySelector(`#slider-${safeId}`);
+        let startValue = 0;
+
+        const setManualMode = (e) => {
+            AppState.isManualMode = true;
+            UI.resetBtn.style.display = 'block';
+            startValue = parseInt(e.target.value);
+        };
+
+        slider.addEventListener('mousedown', setManualMode);
+        slider.addEventListener('touchstart', setManualMode);
+
+        slider.addEventListener('input', (e) => {
+            const delta = parseInt(e.target.value) - startValue;
+            AppState.baseDate = new Date(AppState.baseDate.getTime() + delta * 60000);
+            updateAllTimesAndSliders(tz._instance || tz.id);
+            startValue = parseInt(e.target.value);
+        });
+
+        // ✅ ✅ INPUT CHANGE (CORE FIX)
+        inputEl.addEventListener('change', (e) => {
+
+            AppState.isManualMode = true;
+            UI.resetBtn.style.display = 'block';
+
+            const enteredTime = e.target.value;
+
+            const match = enteredTime.trim().match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+
+            if (match) {
+
+                let hour = parseInt(match[1]);
+                const minute = parseInt(match[2]);
+                const period = match[3];
+
+                // ✅ AM / PM
+                if (period) {
+                    if (period.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+                    if (period.toUpperCase() === 'AM' && hour === 12) hour = 0;
+                }
+
+                // ✅ get correct date for that timezone
+                const parts = new Intl.DateTimeFormat('en-US', {
+                    timeZone: tz.id,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).formatToParts(AppState.baseDate);
+
+                const year = parts.find(p => p.type === 'year').value;
+                const month = parts.find(p => p.type === 'month').value;
+                const day = parts.find(p => p.type === 'day').value;
+
+                // ✅ build zoned datetime
+                const zonedString =
+                    `${year}-${month}-${day}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+
+                const temp = new Date(zonedString);
+
+                const converted = new Date(
+                    temp.toLocaleString('en-US', { timeZone: tz.id })
+                );
+
+                const diff = temp.getTime() - converted.getTime();
+
+                AppState.baseDate = new Date(temp.getTime() + diff);
+
+                // ✅ format input
+                inputEl.value = AppState.baseDate.toLocaleTimeString('en-US', {
+                    timeZone: tz.id,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: !AppState.use24Hour
                 });
-            });
 
-            updateAllTimesAndSliders(null);
-        }
+                updateAllTimesAndSliders(null);
+            }
+        });
+
+        // ✅ ENTER → BLUR
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') inputEl.blur();
+        });
+
+        // ✅ BLUR → APPLY + BACK TO DISPLAY
+        let lastValue = '';
+
+        inputEl.addEventListener('focus', () => {
+            lastValue = inputEl.value;
+        });
+
+        inputEl.addEventListener('blur', () => {
+
+            if (inputEl.value !== lastValue) {
+                inputEl.dispatchEvent(new Event('change'));
+            }
+
+            inputEl.style.display = 'none';
+            timeEl.style.display = 'block';
+        });
+
+    });
+
+    updateAllTimesAndSliders(null);
+}
 
         function updateAllTimesAndSliders(draggingTzId) {
             AppState.activeZones.forEach(tz => {
@@ -1457,10 +1628,31 @@ function removeZone(tzId) {
                 const dateStr = AppState.baseDate.toLocaleDateString('en-US', dateOpts);
                 
                 const timeEl = document.getElementById(`time-${safeId}`);
+                const liveTime = formatTimeWithBlink(AppState.baseDate, tz.id);
+
+                if (timeEl) {
+                    timeEl.innerHTML = `
+                        <span class="time-text">${liveTime}</span>
+                        <span class="edit-icon">✏️</span>
+                    `;
+                }
                 const dateEl = document.getElementById(`date-${safeId}`);
                 
-                if (timeEl) {
-                    timeEl.innerHTML = formatTimeWithBlink(AppState.baseDate, tz.id);
+                const inputEl = document.getElementById(`input-${safeId}`);
+
+                if (inputEl) {
+                    const displayTime = AppState.baseDate.toLocaleTimeString('en-US', {
+                        timeZone: tz.id,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: !AppState.use24Hour
+                    });
+
+                    // ✅ DO NOT override while typing
+                    if (document.activeElement !== inputEl) {
+                        inputEl.value = displayTime;
+                    }
+
                 }
 
                 if(dateEl) dateEl.textContent = dateStr;
@@ -1494,6 +1686,7 @@ function updateURLState() {
     const newUrl = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
     window.history.replaceState(null, '', newUrl);
 }
+
 
 function loadFromURL() {
     const params = new URLSearchParams(window.location.search);
