@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TimeZoneFly.com - Time Zone Converter</title>
+    <meta name="description" content="Convert time zones instantly across cities worldwide. Fast, accurate, and easy to use.">
     <style>
         /* CSS Variables - Slate/Blue Palette */
         :root {
@@ -409,8 +410,19 @@ footer a:not(:last-child)::after {
             background: var(--ad-bg); display: flex; align-items: center;
             justify-content: center; color: var(--text-muted);
             font-weight: bold; letter-spacing: 1px; border: 1px dashed #94a3b8;
+            margin: 20px auto;
+            padding: 0 1rem;
         }
-        .ad-leaderboard { width: 100%; height: 90px; margin: 2rem auto; max-width: 728px; }
+        .ad-leaderboard {
+            width: 100%;
+            max-width: 728px;
+            height: auto;
+            min-height: 90px;
+            
+            margin: 20px auto;
+            text-align: center;
+
+        }
         .ad-skyscraper { width: 300px; height: 600px; position: sticky; top: 2rem; }
 
         /* Responsive Breakpoints */
@@ -420,9 +432,34 @@ footer a:not(:last-child)::after {
         }
 
         @media (max-width: 768px) {
-            .details-dashboard { grid-template-columns: 1fr; }
-            .action-bar { flex-direction: column; align-items: stretch; }
-            .format-toggle-container { justify-content: space-between; }
+
+            /* ✅ EXISTING UI FIXES (KEEP THESE) */
+            .details-dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .action-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .format-toggle-container {
+                justify-content: space-between;
+            }
+
+            /* ✅ ADS BEHAVIOR */
+            .ad-skyscraper {
+                display: none; /* hide right ad */
+            }
+
+            .ad-mobile {
+                display: block;
+            }
+
+            .ad-leaderboard {
+                max-width: 100%;
+                min-height: 90px;
+            }
         }
 
         @media (max-width: 600px) {
@@ -734,6 +771,15 @@ body {
     color: var(--text-main);
 }
 
+.ad-mobile {
+    display: none;
+    width: 100%;
+    max-width: 320px;
+    height: 100px;
+    margin: 20px auto;
+}
+
+
     </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -744,8 +790,13 @@ body {
         <h1>TimeZoneFly.com</h1>
     </header>
 
+    
+
     <div class="container">
         <main class="main-content">
+            <div class="ad-container ad-leaderboard">
+                728x90 LEADERBOARD AD (TOP)
+            </div>
             
             <div class="title-area">
                 <h2 id="dynamic-title">Time Zone Converter</h2>
@@ -784,6 +835,10 @@ body {
                     </div>
 
                     <div id="cards-deck" class="cards-container"></div>
+                    <!-- ✅ MID AD -->
+                    <div class="ad-container ad-leaderboard">
+                        728x90 MID CONTENT AD
+                    </div>
 
                     
 
@@ -817,6 +872,11 @@ body {
             
             <div class="ad-container ad-leaderboard">
                 728x90 LEADERBOARD AD
+            </div>
+
+            <!-- ✅ MOBILE AD -->
+            <div class="ad-container ad-mobile">
+                320x100 MOBILE AD
             </div>
 
         </main>
